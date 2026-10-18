@@ -1,0 +1,291 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Follow Check</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: single narrow column. Input card on top, tabbed result list below. Phone first. */
+:root {
+  --bg: #f5f4f2;
+  --surface: #ffffff;
+  --fg: #1d1c22;
+  --muted: #6b6975;
+  --line: #e3e0e6;
+  --accent: #e0431f;
+  --accent-fg: #ffffff;
+  --soft: #fbe9e4;
+  --good: #1f7a4d;
+  --font-display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15141a; --surface: #1e1d25; --fg: #f0eef3; --muted: #9c99a8; --line: #302e3a;
+    --accent: #ff6a45; --accent-fg: #1a0d08; --soft: #35201b; --good: #5fcf9a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15141a; --surface: #1e1d25; --fg: #f0eef3; --muted: #9c99a8; --line: #302e3a;
+  --accent: #ff6a45; --accent-fg: #1a0d08; --soft: #35201b; --good: #5fcf9a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 56px;
+}
+main { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 8vw, 2.8rem); line-height: 1.05; margin: 0; letter-spacing: -0.02em; text-wrap: balance; }
+h2 { font-family: var(--font-display); font-size: 1.15rem; margin: 0; }
+p { margin: 0; }
+.lede { color: var(--muted); max-width: 52ch; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+label.field { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; font-weight: 600; }
+.input-wrap { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+.input-wrap:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+.input-wrap span { padding-left: 12px; color: var(--muted); font-family: var(--font-mono); }
+.input-wrap input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--fg); font: 500 1rem var(--font-mono); padding: 12px 12px 12px 2px; outline: none; }
+.drop { border: 1.5px dashed var(--line); border-radius: 12px; padding: 20px 14px; text-align: center; cursor: pointer; display: flex; flex-direction: column; gap: 4px; align-items: center; background: var(--bg); }
+.drop:hover, .drop.over, .drop:focus-visible { border-color: var(--accent); outline: none; }
+.drop strong { font-weight: 600; }
+.drop small { color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 500 0.78rem var(--font-mono); padding: 4px 9px; border-radius: 99px; background: var(--soft); max-width: 100%; overflow-wrap: anywhere; }
+.chip.ok { color: var(--good); }
+.chip.skip { color: var(--muted); background: var(--bg); border: 1px solid var(--line); }
+.btn { font: 600 1rem var(--font-body); border: 0; border-radius: 10px; padding: 12px 16px; cursor: pointer; background: var(--accent); color: var(--accent-fg); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); padding: 9px 12px; font-size: 0.88rem; }
+.btn:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+details summary { cursor: pointer; font-weight: 600; }
+details ol { margin: 10px 0 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 0.93rem; }
+.note { font-size: 0.85rem; color: var(--muted); }
+.banner { font-size: 0.85rem; padding: 8px 12px; border-radius: 10px; background: var(--soft); }
+.error { font-size: 0.9rem; color: var(--accent); }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tab { text-align: left; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 12px; padding: 10px 12px; cursor: pointer; font: inherit; display: flex; flex-direction: column; min-width: 0; }
+.tab b { font: 700 1.6rem/1.1 var(--font-display); font-variant-numeric: tabular-nums; }
+.tab span { font-size: 0.78rem; color: var(--muted); }
+.tab[aria-selected="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; }
+.toolbar input { flex: 1 1 160px; min-width: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--fg); font: inherit; padding: 9px 12px; }
+ul.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+ul.list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-top: 1px solid var(--line); }
+ul.list li:first-child { border-top: 0; }
+ul.list a.user { font: 500 0.95rem var(--font-mono); color: var(--fg); text-decoration: none; min-width: 0; overflow-wrap: anywhere; }
+ul.list a.user:hover { color: var(--accent); text-decoration: underline; }
+ul.list .open { font-size: 0.82rem; color: var(--muted); text-decoration: none; white-space: nowrap; }
+ul.list .open:hover { color: var(--accent); }
+.empty { color: var(--muted); padding: 18px 0; text-align: center; }
+@media (prefers-reduced-motion: no-preference) { .drop, .tab, .btn { transition: border-color .15s, box-shadow .15s, opacity .15s; } }
+</style>
+
+<main>
+  <header style="display:flex;flex-direction:column;gap:10px">
+    <h1>Who doesn't follow you back?</h1>
+    <p class="lede">Add your Instagram data download. The page compares the accounts you follow with the accounts that follow you.</p>
+  </header>
+
+  <section class="card" aria-labelledby="in-h">
+    <h2 id="in-h">Your data</h2>
+    <label class="field" for="handle">Your Instagram ID
+      <span class="input-wrap"><span>@</span><input id="handle" type="text" placeholder="your_username" autocomplete="off" autocapitalize="none" spellcheck="false"></span>
+    </label>
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose follower and following files">
+      <strong>Drop your files here or tap to choose</strong>
+      <small>followers_1.json, following.json (or the .html versions)</small>
+    </div>
+    <input id="files" type="file" multiple accept=".json,.html,.htm" hidden>
+    <div class="chips" id="chips" aria-live="polite"></div>
+    <p class="error" id="err" role="alert" hidden></p>
+    <button class="btn" id="go" disabled>Compare</button>
+    <details>
+      <summary>How to get these files</summary>
+      <ol>
+        <li>In Instagram, open Settings, then Accounts Center.</li>
+        <li>Choose Your information and permissions, then Export your information.</li>
+        <li>Create an export, pick Export to device, and select Followers and following.</li>
+        <li>Set the format to JSON and the date range to All time, then start the export.</li>
+        <li>When Instagram emails you the download, unzip it. The files are in the connections, followers_and_following folder.</li>
+      </ol>
+    </details>
+    <p class="note">Instagram does not let a website read follower lists from a username alone, so this uses your own download. Everything is processed in your browser. Nothing is uploaded.</p>
+  </section>
+
+  <section id="results" aria-live="polite">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <p class="banner" id="banner" hidden></p>
+      <div class="stats" role="tablist" aria-label="Result groups">
+        <button class="tab" role="tab" id="t-notback" data-k="notback" aria-selected="true"><b>0</b><span>Don't follow you back</span></button>
+        <button class="tab" role="tab" id="t-fans" data-k="fans" aria-selected="false"><b>0</b><span>You don't follow back</span></button>
+        <button class="tab" role="tab" id="t-mutual" data-k="mutual" aria-selected="false"><b>0</b><span>Follow each other</span></button>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <input id="q" type="search" placeholder="Search usernames" aria-label="Search usernames">
+          <button class="btn ghost" id="copy">Copy list</button>
+        </div>
+        <ul class="list" id="list"></ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  var state = { followers: new Set(), following: new Set(), tab: 'notback', sample: false };
+  var $ = function (id) { return document.getElementById(id); };
+  var pending = { followers: [], following: [] };
+
+  function userFromHref(href) {
+    try {
+      var p = new URL(href).pathname.split('/').filter(Boolean);
+      if (p[0] === '_u') p.shift();
+      return p[0] || '';
+    } catch (e) { return ''; }
+  }
+  function clean(u) { return (u || '').trim().replace(/^@/, '').toLowerCase(); }
+
+  function fromJson(data) {
+    var out = [];
+    (function walk(n) {
+      if (Array.isArray(n)) { n.forEach(walk); return; }
+      if (n && typeof n === 'object') {
+        if (Array.isArray(n.string_list_data)) {
+          var s = n.string_list_data[0] || {};
+          var u = clean(n.title || s.value || userFromHref(s.href));
+          if (u) out.push(u);
+          return;
+        }
+        Object.keys(n).forEach(function (k) { walk(n[k]); });
+      }
+    })(data);
+    return out;
+  }
+  function fromHtml(text) {
+    var doc = new DOMParser().parseFromString(text, 'text/html');
+    var out = [];
+    doc.querySelectorAll('a[href*="instagram.com"]').forEach(function (a) {
+      var u = clean(a.textContent) || clean(userFromHref(a.getAttribute('href')));
+      if (u && !/\s/.test(u)) out.push(u);
+    });
+    return out;
+  }
+  function classify(name) {
+    var n = name.toLowerCase();
+    if (/(pending|recent|blocked|request|close_friends|hashtag|unfollowed|restricted|removed)/.test(n)) return null;
+    if (n.indexOf('followers') > -1) return 'followers';
+    if (n.indexOf('following') > -1) return 'following';
+    return null;
+  }
+
+  function chip(text, cls) {
+    var c = document.createElement('span');
+    c.className = 'chip ' + cls; c.textContent = text;
+    $('chips').appendChild(c);
+  }
+  function showError(msg) { $('err').hidden = !msg; $('err').textContent = msg || ''; }
+
+  function readFiles(fileList) {
+    showError(''); $('chips').textContent = '';
+    pending = { followers: [], following: [] };
+    var files = Array.prototype.slice.call(fileList);
+    return Promise.all(files.map(function (f) {
+      return f.text().then(function (t) {
+        var kind = classify(f.name);
+        if (!kind) { chip(f.name + ' (skipped)', 'skip'); return; }
+        var list;
+        try { list = /\.json$/i.test(f.name) ? fromJson(JSON.parse(t)) : fromHtml(t); }
+        catch (e) { chip(f.name + ' (unreadable)', 'skip'); return; }
+        pending[kind] = pending[kind].concat(list);
+        chip(f.name + ' · ' + list.length, 'ok');
+      });
+    })).then(function () {
+      var ready = pending.followers.length > 0 && pending.following.length > 0;
+      $('go').disabled = !ready;
+      if (!ready) showError('Add at least one followers file and the following file.');
+    });
+  }
+
+  function compare() {
+    var me = clean($('handle').value);
+    state.followers = new Set(pending.followers);
+    state.following = new Set(pending.following);
+    if (me) { state.followers.delete(me); state.following.delete(me); }
+    state.sample = false;
+    state.tab = 'notback';
+    render();
+    $('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function groups() {
+    var a = [], b = [], m = [];
+    state.following.forEach(function (u) { (state.followers.has(u) ? m : a).push(u); });
+    state.followers.forEach(function (u) { if (!state.following.has(u)) b.push(u); });
+    return { notback: a.sort(), fans: b.sort(), mutual: m.sort() };
+  }
+  var current = [];
+  function render() {
+    var g = groups();
+    ['notback', 'fans', 'mutual'].forEach(function (k) {
+      var t = $('t-' + k);
+      t.querySelector('b').textContent = g[k].length;
+      t.setAttribute('aria-selected', String(state.tab === k));
+    });
+    var q = $('q').value.trim().toLowerCase();
+    current = g[state.tab].filter(function (u) { return !q || u.indexOf(q) > -1; });
+    var ul = $('list'); ul.textContent = '';
+    if (!current.length) {
+      var li = document.createElement('li'); li.className = 'empty';
+      li.textContent = q ? 'No usernames match your search.' : 'Nobody in this group.';
+      ul.appendChild(li);
+    }
+    current.forEach(function (u) {
+      var li = document.createElement('li');
+      var a = document.createElement('a'); a.className = 'user'; a.textContent = '@' + u;
+      a.href = 'https://www.instagram.com/' + encodeURIComponent(u) + '/'; a.target = '_blank'; a.rel = 'noopener noreferrer';
+      var o = document.createElement('a'); o.className = 'open'; o.textContent = 'Open profile';
+      o.href = a.href; o.target = '_blank'; o.rel = 'noopener noreferrer';
+      li.appendChild(a); li.appendChild(o); ul.appendChild(li);
+    });
+    $('banner').hidden = !state.sample;
+    if (state.sample) $('banner').textContent = 'Example data. Add your own files above to see your results.';
+  }
+
+  // Example data shown on first load
+  (function seed() {
+    var fol = ['mira.codes','dev_anand','kavya.r','the.lens.club','rohit_s','neha.bakes','trail_notes','sana.k','arjun.rides','film.frames','lakshmi.art','pixel.pete'];
+    var fing = ['mira.codes','dev_anand','kavya.r','the.lens.club','chai.daily','city.eats.blr','tech.weekly','neha.bakes','trail_notes','indie.records','sana.k','daily.sketch'];
+    state.followers = new Set(fol); state.following = new Set(fing); state.sample = true;
+  })();
+
+  $('drop').addEventListener('click', function () { $('files').click(); });
+  $('drop').addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('files').click(); } });
+  $('files').addEventListener('change', function (e) { readFiles(e.target.files); });
+  ['dragover', 'dragenter'].forEach(function (ev) { $('drop').addEventListener(ev, function (e) { e.preventDefault(); $('drop').classList.add('over'); }); });
+  ['dragleave', 'drop'].forEach(function (ev) { $('drop').addEventListener(ev, function () { $('drop').classList.remove('over'); }); });
+  $('drop').addEventListener('drop', function (e) { e.preventDefault(); readFiles(e.dataTransfer.files); });
+  $('go').addEventListener('click', compare);
+  $('q').addEventListener('input', render);
+  document.querySelectorAll('.tab').forEach(function (t) {
+    t.addEventListener('click', function () { state.tab = t.getAttribute('data-k'); render(); });
+  });
+  $('copy').addEventListener('click', function () {
+    var text = current.map(function (u) { return '@' + u; }).join('\n');
+    var btn = $('copy');
+    function done(msg) { btn.textContent = msg; setTimeout(function () { btn.textContent = 'Copy list'; }, 1600); }
+    try {
+      navigator.clipboard.writeText(text).then(function () { done('Copied'); }, function () { done('Copy not allowed here'); });
+    } catch (e) { done('Copy not allowed here'); }
+  });
+
+  render();
+})();
+</script>
+
+</body></html>
